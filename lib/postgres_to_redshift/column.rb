@@ -46,17 +46,17 @@
 class PostgresToRedshift::Column
   attr_accessor :attributes
 
-  ARRAY_TYPE = 'array'.freeze
-
   CAST_TYPES_FOR_COPY = {
     "text" => "CHARACTER VARYING(65535)",
     "json" => "CHARACTER VARYING(65535)",
+    "jsonb" => "CHARACTER VARYING(65535)",
     "bytea" => "CHARACTER VARYING(65535)",
     "money" => "DECIMAL(19,2)",
     "oid" => "CHARACTER VARYING(65535)",
-    "inet" => "CHARACTER VARYING(65535)",
-    "array" => "CHARACTER VARYING(65535)",
-    "uuid" => "CHARACTER VARYING(65535)",
+    "time without time zone" => "CHARACTER VARYING(20)",
+    "bit" => "CHARACTER(1)",
+    "ARRAY" => "CHARACTER VARYING(65535)",
+    "USER-DEFINED" => "CHARACTER VARYING(65535)",
   }
 
   def initialize(attributes: )
@@ -68,9 +68,7 @@ class PostgresToRedshift::Column
   end
 
   def name_for_copy
-    if data_type.downcase == ARRAY_TYPE
-      %Q[CAST(array_to_json("#{name}") AS #{data_type_for_copy}) AS #{name}]
-    elsif needs_type_cast?
+    if needs_type_cast?
       %Q[CAST("#{name}" AS #{data_type_for_copy}) AS #{name}]
     else
       %Q["#{name}"]
@@ -81,17 +79,24 @@ class PostgresToRedshift::Column
     attributes["data_type"]
   end
 
+  def numeric_precision
+    attributes["numeric_precision"].to_i
+  end
+
+  def numeric_scale
+    attributes["numeric_scale"].to_i
+  end
+
   def data_type_for_copy
-    data_type_adjusted = data_type
-
-    numeric_precision = attributes["numeric_precision"]
-    numeric_scale = attributes["numeric_scale"]
-    if (data_type == 'numeric' && numeric_scale && numeric_precision)
-      data_type_adjusted = "NUMERIC(#{numeric_precision},#{numeric_scale})"
+    if data_type == 'numeric'
+      if numeric_precision == 0
+        "FLOAT"
+      else
+        "DECIMAL(#{numeric_precision},#{numeric_scale})"
+      end
+    else
+      CAST_TYPES_FOR_COPY[data_type] || data_type
     end
-
-
-    CAST_TYPES_FOR_COPY[data_type_adjusted.downcase] || data_type_adjusted
   end
 
   private
