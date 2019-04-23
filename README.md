@@ -9,7 +9,7 @@ This gem copies data from postgres to redshift. It's especially useful to copy d
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'postgres_to_redshift'
+gem 'postgres_to_redshift', git: 'git@github.com:KaiaHealth/postgres_to_redshift.git'
 ```
 
 And then execute:
@@ -25,19 +25,13 @@ Or install it yourself as:
 Set your source and target databases, as well as your s3 intermediary.
 
 ```bash
+export DROP_TABLE_BEFORE_CREATE='true'
 export POSTGRES_TO_REDSHIFT_SOURCE_URI='postgres://username:password@host:port/database-name'
 export POSTGRES_TO_REDSHIFT_TARGET_URI='postgres://username:password@host:port/database-name'
+export POSTGRES_TO_REDSHIFT_TARGET_SCHEMA='production'
 export S3_DATABASE_EXPORT_ID='yourid'
 export S3_DATABASE_EXPORT_KEY='yourkey'
 export S3_DATABASE_EXPORT_BUCKET='some-bucket-to-use'
 
 postgres_to_redshift
 ```
-
-## Contributing
-
-1. Fork it ( https://github.com/kitchensurfing/postgres_to_redshift/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request

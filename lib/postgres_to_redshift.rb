@@ -18,17 +18,21 @@ class PostgresToRedshift
   MEGABYTE = KILOBYTE * 1024
   GIGABYTE = MEGABYTE * 1024
 
+  def self.drop_table_before_create
+    ENV['DROP_TABLE_BEFORE_CREATE']
+  end
+
   def self.update_tables
     update_tables = PostgresToRedshift.new
 
     update_tables.tables.each do |table|
       if (include_tables.length == 0 || include_tables.include?(table.target_table_name))
         if (exclude_tables.length == 0 || ! exclude_tables.include?(table.target_table_name))
-          sqlcreate = "CREATE TABLE IF NOT EXISTS #{schema}.#{target_connection.quote_ident(table.target_table_name)} (#{table.columns_for_create})"
 
-          target_connection.exec(sqlcreate)
+          target_connection.exec("DROP TABLE #{schema}.#{target_connection.quote_ident(table.target_table_name)}") if drop_table_before_create
+          target_connection.exec("CREATE TABLE IF NOT EXISTS #{schema}.#{target_connection.quote_ident(table.target_table_name)} (#{table.columns_for_create})")
+
           update_tables.copy_table(table)
-
           update_tables.import_table(table)
         end
       end
@@ -90,23 +94,26 @@ class PostgresToRedshift
   end
 
   def column_definitions(table)
-    source_connection.exec("SELECT * FROM information_schema.columns WHERE table_schema='public' AND table_name='#{table.name}' order by ordinal_position")
+    source_connection.exec("SELECT * FROM information_schema.columns WHERE table_schema= 'public' AND table_name='#{table.name}' order by ordinal_position")
   end
 
   def s3
-    @s3 ||= ::AWS::S3.new(access_key_id: ENV['S3_DATABASE_EXPORT_ID'], secret_access_key: ENV['S3_DATABASE_EXPORT_KEY'])
+    @s3 ||= Aws::S3::Client.new(access_key_id: ENV['S3_DATABASE_EXPORT_ID'], region: 'us-east-1', secret_access_key: ENV['S3_DATABASE_EXPORT_KEY'])
   end
 
   def bucket
-    @bucket ||= s3.buckets[ENV['S3_DATABASE_EXPORT_BUCKET']]
+    @bucket ||= Aws::S3::Resource.new(client: s3).bucket(ENV['S3_DATABASE_EXPORT_BUCKET'])
   end
 
   def copy_table(table)
     tmpfile = Tempfile.new("psql2rs")
+    tmpfile.binmode
     zip = Zlib::GzipWriter.new(tmpfile)
     chunksize = 5 * GIGABYTE # uncompressed
     chunk = 1
-    bucket.objects.with_prefix("export/#{table.target_table_name}.psv.gz").delete_all
+
+    bucket.objects.select { |o| o.key == "export/#{table.target_table_name}.psv.gz" }.map(&:delete)
+
     begin
       puts "Downloading #{table}"
       copy_command = "COPY (SELECT #{table.columns_for_copy} FROM #{table.name}) TO STDOUT WITH DELIMITER '|'"
@@ -122,6 +129,7 @@ class PostgresToRedshift
             zip.close unless zip.closed?
             tmpfile.unlink
             tmpfile = Tempfile.new("psql2rs")
+            tmpfile.binmode
             zip = Zlib::GzipWriter.new(tmpfile)
           end
         end
@@ -138,7 +146,7 @@ class PostgresToRedshift
 
   def upload_table(table, buffer, chunk)
     puts "Uploading #{table.target_table_name}.#{chunk}"
-    bucket.objects["export/#{table.target_table_name}.psv.gz.#{chunk}"].write(buffer, acl: :authenticated_read)
+    bucket.put_object(acl: "private", body: buffer, key: "export/#{table.target_table_name}.psv.gz.#{chunk}")
   end
 
   def import_table(table)
