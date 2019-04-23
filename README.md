@@ -26,6 +26,8 @@ Set your source and target databases, as well as your s3 intermediary.
 
 ```bash
 export DROP_TABLE_BEFORE_CREATE='true'
+export POSTGRES_TO_REDSHIFT_EXCLUDE_TABLES='table1,table2'
+export POSTGRES_TO_REDSHIFT_INCLUDE_TABLES='table2,table3'
 export POSTGRES_TO_REDSHIFT_SOURCE_URI='postgres://username:password@host:port/database-name'
 export POSTGRES_TO_REDSHIFT_TARGET_URI='postgres://username:password@host:port/database-name'
 export POSTGRES_TO_REDSHIFT_TARGET_SCHEMA='production'
