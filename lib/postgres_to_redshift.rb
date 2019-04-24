@@ -19,7 +19,7 @@ class PostgresToRedshift
   GIGABYTE = MEGABYTE * 1024
 
   def self.drop_table_before_create
-    ENV['DROP_TABLE_BEFORE_CREATE']
+    ENV['DROP_TABLE_BEFORE_CREATE'] == 'true'
   end
 
   def self.update_tables
