@@ -40,11 +40,11 @@ class PostgresToRedshift
   end
 
   def self.source_uri
-    @source_uri ||= URI.parse(ENV['POSTGRES_TO_REDSHIFT_SOURCE_URI'])
+    @source_uri ||= URI.parse(CGI::escape(ENV['POSTGRES_TO_REDSHIFT_SOURCE_URI']))
   end
 
   def self.target_uri
-    @target_uri ||= URI.parse(ENV['POSTGRES_TO_REDSHIFT_TARGET_URI'])
+    @target_uri ||= URI.parse(CGI::escape(ENV['POSTGRES_TO_REDSHIFT_TARGET_URI']))
   end
 
   def self.source_connection
