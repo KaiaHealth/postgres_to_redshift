@@ -40,16 +40,16 @@ class PostgresToRedshift
   end
 
   def self.source_uri
-    @source_uri ||= URI.parse(CGI::escape(ENV['POSTGRES_TO_REDSHIFT_SOURCE_URI']))
+    @source_uri ||= URI.parse(ENV['POSTGRES_TO_REDSHIFT_SOURCE_URI'])
   end
 
   def self.target_uri
-    @target_uri ||= URI.parse(CGI::escape(ENV['POSTGRES_TO_REDSHIFT_TARGET_URI']))
+    @target_uri ||= URI.parse(ENV['POSTGRES_TO_REDSHIFT_TARGET_URI'])
   end
 
   def self.source_connection
     unless instance_variable_defined?(:"@source_connection")
-      @source_connection = PG::Connection.new(host: source_uri.host, port: source_uri.port, user: source_uri.user || ENV['USER'], password: source_uri.password, dbname: source_uri.path[1..-1])
+      @source_connection = PG::Connection.new(host: source_uri.host, port: source_uri.port, user: source_uri.user || ENV['USER'], password: ENV['POSTGRES_TO_REDSHIFT_SOURCE_PASSWORD'], dbname: source_uri.path[1..-1])
       @source_connection.exec("SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY;")
     end
 
@@ -58,7 +58,7 @@ class PostgresToRedshift
 
   def self.target_connection
     unless instance_variable_defined?(:"@target_connection")
-      @target_connection = PG::Connection.new(host: target_uri.host, port: target_uri.port, user: target_uri.user || ENV['USER'], password: target_uri.password, dbname: target_uri.path[1..-1])
+      @target_connection = PG::Connection.new(host: target_uri.host, port: target_uri.port, user: target_uri.user || ENV['USER'], password: ENV['POSTGRES_TO_REDSHIFT_TARGET_PASSWORD'], dbname: target_uri.path[1..-1])
     end
 
     @target_connection
