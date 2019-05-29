@@ -98,11 +98,11 @@ class PostgresToRedshift
   end
 
   def s3
-    @s3 ||= ::AWS::S3::Client.new(access_key_id: ENV['S3_DATABASE_EXPORT_ID'], region: 'us-east-1', secret_access_key: ENV['S3_DATABASE_EXPORT_KEY'])
+    @s3 ||= ::Aws::S3::Client.new(access_key_id: ENV['S3_DATABASE_EXPORT_ID'], region: 'us-east-1', secret_access_key: ENV['S3_DATABASE_EXPORT_KEY'])
   end
 
   def bucket
-    @bucket ||= ::AWS::S3::Resource.new(client: s3).bucket(ENV['S3_DATABASE_EXPORT_BUCKET'])
+    @bucket ||= ::Aws::S3::Resource.new(client: s3).bucket(ENV['S3_DATABASE_EXPORT_BUCKET'])
   end
 
   def copy_table(table)
