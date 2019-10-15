@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    postgres_to_redshift (0.1.14)
-      aws-sdk (~> 2)
+    postgres_to_redshift (0.1.7.1)
+      aws-sdk-s3 (~> 1)
       dotenv
       pg (~> 0.21.0)
 
@@ -10,17 +10,23 @@ GEM
   remote: https://rubygems.org/
   specs:
     aws-eventstream (1.0.3)
-    aws-sdk (2.11.283)
-      aws-sdk-resources (= 2.11.283)
-    aws-sdk-core (2.11.283)
-      aws-sigv4 (~> 1.0)
+    aws-partitions (1.223.0)
+    aws-sdk-core (3.68.1)
+      aws-eventstream (~> 1.0, >= 1.0.2)
+      aws-partitions (~> 1.0)
+      aws-sigv4 (~> 1.1)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.11.283)
-      aws-sdk-core (= 2.11.283)
+    aws-sdk-kms (1.24.0)
+      aws-sdk-core (~> 3, >= 3.61.1)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-s3 (1.49.0)
+      aws-sdk-core (~> 3, >= 3.61.1)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.1)
     aws-sigv4 (1.1.0)
       aws-eventstream (~> 1.0, >= 1.0.2)
     diff-lcs (1.2.5)
-    dotenv (2.7.2)
+    dotenv (2.7.5)
     jmespath (1.4.0)
     pg (0.21.0)
     rake (10.4.2)
@@ -48,4 +54,4 @@ DEPENDENCIES
   rspec
 
 BUNDLED WITH
-   1.16.4
+   1.17.3
